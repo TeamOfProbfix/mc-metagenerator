@@ -1,31 +1,33 @@
 from flask import Flask, request, jsonify, send_file
-import uuid, json
+import json
 import os
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    # Full Updated HTML/CSS/JS for Manifest Generator
+    # Full English Localization & Enhanced Features
     return '''
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC Manifest Generator Pro</title>
+    <title>JAVA Mcmeta Generator Pro</title>
     <style>
-        /* CSS Variables cho Theme */
+        /* Define Theme CSS Variables */
         :root {
-            --bg-grad: radial-gradient(circle at top, #1e1b4b, #020617);
-            --card-bg: rgba(30, 41, 59, 0.8);
+            /* Mặc định: Neon Purple/Cyan Vibe */
+            --bg-grad: radial-gradient(circle at top, #1e1b4b, #000000); /* Dark purple top */
+            --card-bg: rgba(15, 23, 42, 0.9);
             --text-main: #ffffff;
-            --text-sub: #a5b4fc;
-            --border: rgba(255,255,255,0.1);
-            --input-bg: #020617;
-            --p-color: #7c3aed;
-            --s-color: #22d3ee;
-            --glow-op: 0.5;
+            --text-sub: #a5b4fc; /* Pale purple */
+            --border: rgba(34, 211, 238, 0.3); /* Cyan accent */
+            --input-bg: #000000;
+            --p-color: #7c3aed; /* Purple 600 */
+            --s-color: #22d3ee; /* Cyan 400 */
+            --neon-glow: 0 0 15px rgba(34, 211, 238, 0.4);
+            --special-accent: #22d3ee; /* Cyan for credits */
         }
 
         /* Light Theme */
@@ -36,74 +38,111 @@ def home():
             --text-sub: #475569;
             --border: #e2e8f0;
             --input-bg: #f8fafc;
-            --p-color: #4f46e5;
-            --s-color: #0891b2;
-            --glow-op: 0;
+            --p-color: #4f46e5; /* Purple 600 */
+            --s-color: #0ea5e9; /* Cyan 500 */
+            --neon-glow: none;
+            --special-accent: #0ea5e9;
         }
 
-        /* Dark Theme */
+        /* Dark Theme (Pure Dark) */
         body.dark-theme {
             --bg-grad: #020617;
             --card-bg: #0f172a;
-            --text-main: #f8fafc;
+            --text-main: #f1f5f9;
             --text-sub: #94a3b8;
             --border: #1e293b;
             --input-bg: #000000;
-            --glow-op: 0;
+            --neon-glow: none;
+            --special-accent: #22d3ee;
         }
 
         body { 
-            margin:0; font-family: 'Segoe UI', sans-serif; 
+            margin:0; font-family: 'Segoe UI', Roboto, sans-serif; 
             background: var(--bg-grad); color: var(--text-main); 
             min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            transition: 0.3s;
+            overflow-x: hidden; transition: background 0.3s, color 0.3s;
         }
 
-        /* Glow hiệu ứng chỉ cho Neon */
-        body.neon-theme::before { content:""; position:fixed; width:300px; height:300px; background:#7c3aed; filter:blur(120px); top:-100px; left:-100px; opacity:var(--glow-op); z-index:-1; }
-        body.neon-theme::after { content:""; position:fixed; width:300px; height:300px; background:#22d3ee; filter:blur(120px); bottom:-100px; right:-100px; opacity:var(--glow-op); z-index:-1; }
+        /* Neon Purple Background Glow */
+        body::before { 
+            content:""; position:fixed; width:500px; height:500px; 
+            background: #7c3aed; filter:blur(180px); 
+            top:-200px; left:-200px; opacity: 0.15; z-index:-1; 
+        }
 
-        .app { width: 100%; max-width: 450px; padding: 20px; position: relative; }
+        .app { width: 100%; max-width: 450px; padding: 20px; z-index: 1; position: relative;}
 
-        /* Menu 3 gạch */
-        .menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; z-index: 100; padding: 10px; background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border); }
-        .menu-btn div { width: 25px; height: 3px; background: var(--s-color); margin: 5px 0; border-radius: 2px; }
+        /* Theme Switcher Button */
+        .menu-btn { position: fixed; top: 20px; right: 20px; cursor: pointer; z-index: 100; padding: 10px; background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--neon-glow); transition: 0.3s; }
+        .menu-btn:hover { border-color: var(--s-color); }
+        .menu-btn div { width: 25px; height: 3px; background: var(--s-color); margin: 5px 0; border-radius: 2px;}
 
-        .sidebar { position: fixed; top: 0; right: -250px; width: 200px; height: 100%; background: var(--card-bg); backdrop-filter: blur(20px); padding: 60px 20px; transition: 0.4s; z-index: 90; border-left: 1px solid var(--border); }
+        /* Sidebar for Themes */
+        .sidebar { position: fixed; top: 0; right: -280px; width: 220px; height: 100%; background: var(--card-bg); backdrop-filter: blur(20px); padding: 70px 20px; transition: 0.4s; z-index: 90; border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
         .sidebar.active { right: 0; }
-        .sidebar h4 { margin-top: 0; color: var(--s-color); font-size: 14px; text-transform: uppercase; }
-        .theme-opt { display: block; width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-main); border-radius: 10px; cursor: pointer; text-align: left; }
-        .theme-opt:hover { border-color: var(--s-color); }
+        .sidebar h4 { margin-top: 0; color: var(--s-color); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; text-align: center;}
+        .theme-opt { display: block; width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-main); border-radius: 12px; cursor: pointer; text-align: left; font-size: 14px; transition: 0.2s; }
+        .theme-opt:hover { border-color: var(--s-color); transform: translateX(-5px); }
 
-        /* Giao diện chính */
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h2 { margin: 0; font-size: 22px; background: linear-gradient(90deg, #c084fc, var(--s-color)); -webkit-background-clip: text; color: transparent; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h2 { 
+            margin: 0; font-size: 26px; font-weight: 800;
+            background: linear-gradient(90deg, #ffffff, var(--special-accent)); 
+            -webkit-background-clip: text; color: transparent;
+            text-shadow: var(--neon-glow);
+        }
         
-        .card { background: var(--card-bg); backdrop-filter: blur(15px); padding: 20px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(20px); 
+            padding: 25px; 
+            border-radius: 24px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+        }
 
-        .input-group { margin-bottom: 12px; }
-        label { display: block; font-size: 11px; color: var(--text-sub); margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-main); font-size: 14px; box-sizing: border-box; }
-
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        button { padding: 12px; border: none; border-radius: 12px; background: linear-gradient(135deg, var(--p-color), var(--s-color)); font-weight: bold; color: white; cursor: pointer; font-size: 13px; }
-        button:active { transform: scale(0.96); }
-
-        /* Preview Area */
-        pre { background: #000; padding: 15px; border-radius: 10px; font-size: 12px; color: #38bdf8; overflow: auto; max-height: 180px; border: 1px solid #1e293b; white-space: pre; margin-top: 10px;}
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; color: var(--s-color); margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Pack Icon Preview */
-        #icon-preview { width: 64px; height: 64px; border-radius: 8px; border: 2px solid var(--s-color); object-fit: cover; display: none; margin: 10px auto; }
+        input, select { 
+            width: 100%; padding: 12px; border-radius: 12px; 
+            border: 1px solid var(--border); background: var(--input-bg); 
+            color: var(--text-main); font-size: 14px; box-sizing: border-box;
+            transition: 0.3s;
+        }
+        input:focus, select:focus { border-color: var(--s-color); outline: none; box-shadow: 0 0 10px rgba(34, 211, 238, 0.2); }
 
-        /* Footer & Link styling */
-        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: var(--text-sub); line-height: 1.5; }
-        .footer-link { margin-top: 5px; }
-        .footer-link a { color: var(--s-color); text-decoration: underline; font-weight: bold; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        button { 
+            padding: 14px; border: none; border-radius: 14px; 
+            background: linear-gradient(135deg, var(--p-color), var(--s-color)); 
+            font-weight: bold; color: white; cursor: pointer; font-size: 14px;
+            transition: 0.2s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(34, 211, 238, 0.4); }
+        button:active { transform: scale(0.95); }
+
+        pre { 
+            background: #000; padding: 15px; border-radius: 12px; 
+            font-size: 13px; color: #22d3ee; overflow: auto; 
+            max-height: 180px; border: 1px solid var(--border); 
+            white-space: pre; margin-top: 15px;
+        }
+        
+        #icon-preview { 
+            width: 80px; height: 80px; border-radius: 12px; 
+            border: 2px solid var(--special-accent); object-fit: cover; 
+            display: none; margin: 15px auto; box-shadow: var(--neon-glow);
+        }
+
+        .credits-container { text-align: center; margin-top: 30px; font-size: 12px; color: var(--text-sub); line-height: 1.6;}
+        .highlight { color: var(--special-accent); font-weight: bold;}
+        .bedrock-link { margin-top: 8px; display: block; color: var(--text-sub); text-decoration: none; transition: 0.2s;}
+        .bedrock-link a { color: var(--s-color); text-decoration: underline; font-weight: bold;}
+        .bedrock-link:hover { color: var(--text-main); }
     </style>
 </head>
-<body class="neon-theme">
+<body>
 
 <div class="menu-btn" onclick="toggleMenu()">
     <div></div><div></div><div></div>
@@ -111,68 +150,67 @@ def home():
 
 <div class="sidebar" id="sidebar">
     <h4>Select Theme</h4>
-    <button class="theme-opt" onclick="setTheme('neon')">✨ Neon Mode</button>
-    <button class="theme-opt" onclick="setTheme('dark')">🌙 Dark Mode</button>
-    <button class="theme-opt" onclick="setTheme('light')">☀️ Light Mode</button>
+    <button class="theme-opt" onclick="setTheme('neon')">✨ Neon Vibe</button>
+    <button class="theme-opt" onclick="setTheme('dark')">🌙 Pure Dark</button>
+    <button class="theme-opt" onclick="setTheme('light')">☀️ Crystal Light</button>
 </div>
 
 <div class="app">
     <div class="header">
-        <h2>MC Manifest Generator ⚙️</h2>
+        <h2>JAVA Mcmeta Generator ⚙️</h2>
     </div>
 
     <div class="card">
         <div class="input-group">
-            <label>Pack Icon (Auto-resize 128x128)</label>
+            <label>Pack Icon (Auto-crop pack.png)</label>
             <input type="file" id="icon-input" accept="image/*" onchange="processIcon()">
             <img id="icon-preview">
         </div>
 
-        <div class="grid">
-            <div class="input-group">
-                <label>Pack Type</label>
-                <select id="type" onchange="liveUpdate()">
-                    <option value="resources">Resources</option>
-                    <option value="data">Behavior</option>
-                    <option value="skin_pack">Skin Pack</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Min Engine Version</label>
-                <select id="engine" onchange="liveUpdate()">
-                    <option value="1,17,0">1.17.0</option>
-                    <option value="1,18,0">1.18.0</option>
-                    <option value="1,19,0">1.19.0</option>
-                    <option value="1,20,0">1.20.0</option>
-                    <option value="1,21,0">1.21.0</option>
-                    <option value="1,26,0">1.26.0</option>
-                    <option value="1,26,3" selected>1.26.3 (Latest)</option>
-                </select>
-            </div>
+        <div class="input-group">
+            <label>Minecraft Java Version</label>
+            <select id="version-select" onchange="syncFormat()">
+                <option value="48" selected>1.26.x (Format 48)</option>
+                <option value="46">1.21.4 (Format 46)</option>
+                <option value="34">1.20.5 - 1.21.1 (Format 34)</option>
+                <option value="22">1.20.3 - 1.20.4 (Format 22)</option>
+                <option value="18">1.20.2 (Format 18)</option>
+                <option value="15">1.20 - 1.20.1 (Format 15)</option>
+                <option value="13">1.19.4 (Format 13)</option>
+                <option value="12">1.19.3 (Format 12)</option>
+                <option value="9">1.18.2 (Format 9)</option>
+                <option value="8">1.18 - 1.18.1 (Format 8)</option>
+                <option value="7">1.17 (Format 7)</option>
+                <option value="6">1.16.2 - 1.16.5 (Format 6)</option>
+                <option value="5">1.15 - 1.16.1 (Format 5)</option>
+                <option value="4">1.13 - 1.14.4 (Format 4)</option>
+            </select>
         </div>
 
         <div class="input-group">
-            <label>Pack Name</label>
-            <input id="name" placeholder="Example: Ultra Pack" oninput="liveUpdate()">
+            <label>Pack Description</label>
+            <input id="desc" placeholder="Enter description..." oninput="liveUpdate()" value="My Java Resource Pack">
         </div>
 
         <div class="input-group">
-            <label>Description</label>
-            <input id="desc" placeholder="Enter description..." oninput="liveUpdate()">
+            <label>Pack Format (Number)</label>
+            <input type="number" id="format-num" oninput="liveUpdate()" value="48">
         </div>
 
         <pre id="preview"></pre>
 
         <div class="btn-group">
             <button onclick="handleDownload()">Download Pack</button>
-            <button onclick="copyJSON()">Copy Code</button>
+            <button onclick="copyCode()">Copy JSON</button>
         </div>
     </div>
 
-    <div class="footer">
-        <div>Made by <b>Probfix</b> & <b>AI Partner</b> ⚡</div>
-        <div class="footer-link">Need pack.mcmeta for Java? 
-            <a href="#" target="_blank">Click here</a>
+    <div class="credits-container">
+        <div class="footer-text">
+            Make by <span class="highlight">Probfix</span> & <span class="highlight">AI partner⚡</span>
+        </div>
+        <div class="bedrock-link">
+            Need Manifest.json for Minecraft Bedrock? <a href="https://manifest-generator-y00b.onrender.com/" target="_blank">Click here</a>
         </div>
     </div>
 </div>
@@ -182,20 +220,23 @@ def home():
 <script>
 let currentJSON = null;
 let iconBlob = null;
-let u1 = genUUID(), u2 = genUUID();
 
-function genUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-        const r = Math.random() * 16 | 0;
-        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
+// Theme Logic
+function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
+function setTheme(t) { 
+    document.body.className = t + '-theme'; 
+    localStorage.setItem('mcmeta-theme', t); // Save preference
+    toggleMenu(); 
 }
 
-function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
+// Load saved theme on load
+const savedTheme = localStorage.getItem('mcmeta-theme') || 'neon';
+document.body.className = savedTheme + '-theme';
 
-function setTheme(theme) {
-    document.body.className = theme + '-theme';
-    toggleMenu();
+
+function syncFormat() {
+    document.getElementById('format-num').value = document.getElementById('version-select').value;
+    liveUpdate();
 }
 
 function processIcon() {
@@ -209,7 +250,7 @@ function processIcon() {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Logic cắt ảnh vuông chính giữa (Center Crop)
+            // Center crop to square
             let size = Math.min(img.width, img.height);
             let x = (img.width - size) / 2;
             let y = (img.height - size) / 2;
@@ -230,61 +271,49 @@ function processIcon() {
 }
 
 function liveUpdate() {
-    const type = document.getElementById("type").value;
-    const name = document.getElementById("name").value || "Unnamed Pack";
-    const desc = document.getElementById("desc").value || "Minecraft Bedrock Pack";
-    const engine = document.getElementById("engine").value.split(",").map(Number);
+    const desc = document.getElementById("desc").value || "A Minecraft Pack";
+    const format = parseInt(document.getElementById("format-num").value) || 48;
 
     currentJSON = {
-        "format_version": 2,
-        "header": {
-            "name": name,
+        "pack": {
             "description": desc,
-            "uuid": u1,
-            "version": [1, 0, 0],
-            "min_engine_version": engine
-        },
-        "modules": [
-            {
-                "type": type,
-                "uuid": u2,
-                "version": [1, 0, 0]
-            }
-        ]
+            "pack_format": format
+        }
     };
     document.getElementById("preview").innerText = JSON.stringify(currentJSON, null, 4);
 }
 
 async function handleDownload() {
-    if(!currentJSON) { alert("Please enter info!"); return; }
+    if(!currentJSON) return;
 
-    // 1. Tải Manifest
+    // 1. Download pack.mcmeta
     const res = await fetch("/download", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(currentJSON)
     });
     const mBlob = await res.blob();
-    downloadFile(mBlob, "manifest.json");
+    saveAs(mBlob, "pack.mcmeta");
 
-    // 2. Tải Icon nếu có
+    // 2. Download pack.png
     if(iconBlob) {
-        setTimeout(() => downloadFile(iconBlob, "pack_icon.png"), 500);
+        setTimeout(() => saveAs(iconBlob, "pack.png"), 500);
     }
 }
 
-function downloadFile(blob, name) {
+function saveAs(blob, name) {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = name;
     a.click();
 }
 
-function copyJSON() {
+function copyCode() {
     navigator.clipboard.writeText(JSON.stringify(currentJSON, null, 4));
-    alert("Copied!");
+    alert("JSON code copied to clipboard!");
 }
 
+// Initial update
 liveUpdate();
 </script>
 </body>
@@ -294,7 +323,8 @@ liveUpdate();
 @app.route("/download", methods=["POST"])
 def download():
     data = request.get_json(force=True)
-    filename = "manifest.json"
+    # Ghi tạm vào thư mục làm việc của Render (temporary disk space)
+    filename = "pack.mcmeta"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
     return send_file(filename, as_attachment=True)
